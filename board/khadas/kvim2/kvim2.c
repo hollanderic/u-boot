@@ -44,6 +44,11 @@
 #include <asm/cpu_id.h>
 DECLARE_GLOBAL_DATA_PTR;
 
+// used for forcing update of new environment variables
+// increment VIM2_ENV_VERSION_VALUE when we want to force reloading new environment
+#define VIM2_ENV_VERSION        "vim2-env-version"
+#define VIM2_ENV_VERSION_VALUE  "4"
+
 //new static eth setup
 struct eth_board_socket*  eth_board_skt;
 
@@ -156,6 +161,12 @@ static void setup_net_chip(void)
 
 	/* power on memory */
 	clrbits_le32(HHI_MEM_PD_REG0, (1 << 3) | (1<<2));
+
+        // Avoid resetting due to WOL or other events.
+        // We can't just disable WOL resets at this point because
+        // the command to do so (kbi forcereset wol w 0) requires
+        // that the nic is further initialised.
+        run_command("kbi resetflag 0", 0);
 
 	/* hardware reset ethernet phy : gpioz14 connect phyreset pin*/
 	clrbits_le32(PREG_PAD_GPIO3_EN_N, 1 << 14);
@@ -330,7 +341,7 @@ struct aml_i2c_platform g_aml_i2c_plat = {
 	.master_no          = AML_I2C_MASTER_B,
 	.use_pio            = 0,
 	.master_i2c_speed   = AML_I2C_SPPED_100K,
-	.master_ao_pinmux = {
+	.master_b_pinmux = {
 		.scl_reg    = (unsigned long)MESON_I2C_MASTER_B_GPIODV_27_REG,
 		.scl_bit    = MESON_I2C_MASTER_B_GPIODV_27_BIT,
 		.sda_reg    = (unsigned long)MESON_I2C_MASTER_B_GPIODV_26_REG,
@@ -451,6 +462,14 @@ U_BOOT_CMD(hdmi_init, CONFIG_SYS_MAXARGS, 0, do_hdmi_init,
 #ifdef CONFIG_BOARD_LATE_INIT
 int board_late_init(void){
 	int ret;
+
+    const char* env_version = getenv(VIM2_ENV_VERSION);
+    if (!env_version || strcmp(env_version, VIM2_ENV_VERSION_VALUE)) {
+        printf("forcing reinitialization of environment variables\n");
+        run_command("env default -a", 0);
+        setenv(VIM2_ENV_VERSION, VIM2_ENV_VERSION_VALUE);
+        run_command("env save", 0);
+    }
 
 	run_command("if itest ${firstboot} == 1; then "\
 			"defenv_reserv;setenv firstboot 1; setenv upgrade_step 2; saveenv; fi;", 0);

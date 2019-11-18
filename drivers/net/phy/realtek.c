@@ -9,6 +9,7 @@
 #include <config.h>
 #include <common.h>
 #include <phy.h>
+#include <command.h>
 
 #define PHY_AUTONEGOTIATE_TIMEOUT 5000
 
@@ -81,6 +82,10 @@ static int rtl8211f_config(struct phy_device *phydev)
 	phy_write(phydev, MDIO_DEVAD_NONE, MIIM_RTL8211F_PAGE_SELECT, 0xd04);
 	phy_write(phydev, MDIO_DEVAD_NONE, 0x10, 0xc171);
 
+        // At this point the nic is configured and we can disable wol related
+        // resets until wake on lan is configured.
+        run_command("kbi forcereset wol w 0", 0);
+	run_command("kbi resetflag 1", 0);
 	return 0;
 }
 
@@ -255,7 +260,6 @@ static struct phy_driver RTL8211F_driver = {
 
 int phy_realtek_init(void)
 {
-	puts("__phy_realtek_init");
 	phy_register(&RTL8211B_driver);
 	phy_register(&RTL8211E_driver);
 	phy_register(&RTL8211F_driver);

@@ -69,6 +69,7 @@
 #define CONFIG_BAUDRATE  115200
 #define CONFIG_AML_MESON_SERIAL   1
 #define CONFIG_SERIAL_MULTI		1
+#define CONFIG_USID_FROM_ETH_MAC 1
 
 //Enable ir remote wake up for bl30
 //#define CONFIG_IR_REMOTE
@@ -143,7 +144,13 @@
             "fi;fi;fi;fi;"\
             "\0" \
         "storeboot="\
-            "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
+            "kbi resetflag 1;sleep 1;" \
+            "zircon_bootconfig tee boot misc recovery; if imgread kernel; then bootm ${loadaddr}; fi;"\
+            "run update;"\
+            "\0"\
+        "storeboot_recovery="\
+            "kbi resetflag 1;sleep 1;" \
+            "setenv boot_part recovery; if imgread kernel; then bootm ${loadaddr}; fi;"\
             "run update;"\
             "\0"\
         "factory_reset_poweroff_protect="\
@@ -209,10 +216,9 @@
             "\0"\
         "cmdline_keys="\
             "if keyman init 0x1234; then "\
-                "if keyman read usid ${loadaddr} str; then "\
-                    "setenv bootargs ${bootargs} androidboot.serialno=${usid};"\
-                    "setenv serial ${usid};"\
-                "fi;"\
+                "kbi usid;"\
+                "setenv bootargs ${bootargs} androidboot.serialno=${usid};"\
+                "setenv serial ${usid};"\
                 "kbi ethmac;"\
                 "setenv bootargs ${bootargs} mac=${eth_mac} androidboot.mac=${eth_mac};"\
                 "if keyman read deviceid ${loadaddr} str; then "\
@@ -234,8 +240,15 @@
             "\0"\
         "upgrade_key="\
             "if gpio input GPIOAO_2; then "\
-                "echo detect upgrade key; sleep 3;"\
-                "if gpio input GPIOAO_2; then run update; fi;"\
+                "echo detect upgrade key; sleep 1;"\
+                "if gpio input GPIOAO_2; then fastboot; fi;"\
+            "fi;"\
+            "\0"\
+        "recovery_key="\
+            "saradc open 0;"\
+            "if saradc get_in_range 0x0 0x1f; then "\
+                "echo reboot into recovery;"\
+                "run storeboot_recovery;" \
             "fi;"\
             "\0"\
         "vim2_check="\
@@ -247,14 +260,12 @@
             "fi;fi;"\
             "\0"\
          "wol_init="\
+            "kbi init;"\
             "kbi powerstate;"\
             "kbi trigger wol r;"\
             "setenv bootargs ${bootargs} wol_enable=${wol_enable};"\
-            "if test ${power_state} = 1; then "\
-            "kbi trigger wol w 1;"\
-            "gpio set GPIODV_2;"\
-            "fi;"\
-            "\0"\
+            "kbi forcereset wol w ${wol_enable};"\
+            "\0"
 
 #define CONFIG_PREBOOT  \
             "run bcb_cmd; "\
@@ -264,6 +275,7 @@
             "run storeargs;"\
             "run combine_key;" \
             "run upgrade_key;" \
+            "run recovery_key;" \
             "run vim2_check;" \
             "run wol_init;"\
             "forceupdate;" \
@@ -277,6 +289,7 @@
 #define CONFIG_ANDROID_BOOT_IMAGE 1
 #define CONFIG_ANDROID_IMG 1
 #define CONFIG_SYS_BOOTM_LEN (64<<20) /* Increase max gunzip size*/
+#define CONFIG_ZIRCON_BOOT_IMAGE 1
 
 /* cpu */
 #define CONFIG_CPU_CLK					1200 //MHz. Range: 600-1800, should be multiple of 24

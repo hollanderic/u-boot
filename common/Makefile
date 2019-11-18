@@ -278,6 +278,7 @@ obj-y += malloc_simple.o
 endif
 obj-y += image.o
 obj-$(CONFIG_ANDROID_BOOT_IMAGE) += image-android.o
+obj-$(CONFIG_ZIRCON_BOOT_IMAGE) += image-zircon.o
 obj-$(CONFIG_OF_LIBFDT) += image-fdt.o
 obj-$(CONFIG_FIT) += image-fit.o
 obj-$(CONFIG_FIT_SIGNATURE) += image-sig.o
@@ -323,3 +324,6 @@ obj-$(CONFIG_AML_LCD) += cmd_lcd.o
 obj-$(CONFIG_CMD_RSVMEM) += cmd_rsvmem.o
 obj-$(CONFIG_CMD_CHIPID) += cmd_chipid.o
 CFLAGS_env_embedded.o := -Wa,--no-warn -DENV_CRC=$(shell tools/envcrc 2>/dev/null)
+
+# zircon commands
+obj-$(CONFIG_ZIRCON_BOOT_IMAGE) += cmd_zircon_bootconfig.o
