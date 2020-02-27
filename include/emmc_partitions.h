@@ -61,10 +61,29 @@ Description:
 #endif		/* CONFIG_AML_MMC_INHERENT_PART */
 
 #define     MMC_CACHE_NAME                  "cache"
-// #define     MMC_CACHE_SIZE                  (512*SZ_1M) // this is not used and should be get from spl
+//#define     MMC_CACHE_SIZE                  (512*SZ_1M) // this is not used and should be get from spl
 
 #define     MMC_ENV_NAME                    "env"
 #define     MMC_ENV_SIZE                    (8*SZ_1M)
+
+#define     MMC_ZIRCON_LOGO_NAME            "logo"
+#define     MMC_ZIRCON_LOGO_SIZE            (8*SZ_1M)
+
+#define     MMC_ZIRCON_A_NAME               "zircon-a"
+#define     MMC_ZIRCON_A_SIZE               (24*SZ_1M)
+
+#define     MMC_ZIRCON_B_NAME               "zircon-b"
+#define     MMC_ZIRCON_B_SIZE               (24*SZ_1M)
+
+#define     MMC_ZIRCON_R_NAME               "zircon-r"
+#define     MMC_ZIRCON_R_SIZE               (24*SZ_1M)
+
+
+#define     MMC_ZIRCON_SYS_CONF_NAME        "sys-config"
+#define     MMC_ZIRCON_SYS_CONF_SIZE        (24*SZ_1M)
+
+#define     MMC_ZIRCON_FVM_NAME              "fvm"
+#define     MMC_ZIRCON_FVM_SIZE              (1024*SZ_1M)
 
 #define     MMC_KEY_NAME                    "key"
 #define     MMC_KEY_SIZE                    (256*1024)

@@ -114,6 +114,18 @@ struct partitions emmc_partition_table[] = {
 	PARTITION_ELEMENT(MMC_ENV_NAME, MMC_ENV_SIZE, 0),
 };
 
+#if (CONFIG_ZIRCON_BOOT_IMAGE)
+struct partitions zircon_emmc_partition_table[] = {
+  PARTITION_ELEMENT(MMC_ZIRCON_LOGO_NAME, MMC_ZIRCON_LOGO_SIZE, 1),
+	PARTITION_ELEMENT(MMC_ZIRCON_A_NAME, MMC_ZIRCON_A_SIZE, 1),
+	PARTITION_ELEMENT(MMC_ZIRCON_B_NAME, MMC_ZIRCON_B_SIZE, 1),
+	PARTITION_ELEMENT(MMC_ZIRCON_R_NAME, MMC_ZIRCON_R_SIZE, 1),
+	PARTITION_ELEMENT(MMC_ZIRCON_SYS_CONF_NAME, MMC_ZIRCON_SYS_CONF_SIZE, 1),
+	PARTITION_ELEMENT(MMC_ZIRCON_FVM_NAME, MMC_ZIRCON_FVM_SIZE, 1),
+	PARTITION_ELEMENT("data", 0xffffffffffffffff, 4),
+};
+#endif
+
 struct virtual_partition virtual_partition_table[] = {
 	/* partition for name idx, off & size will not be used! */
 #if (CONFIG_PTBL_MBR)
@@ -245,7 +257,19 @@ static ulong _mmc_rsv_write(struct mmc *mmc, ulong offset, ulong size, void * bu
 	return (ulong)(_cnt * mmc->read_bl_len);
 }
 
-static struct partitions * get_ptbl_from_dtb(struct mmc *mmc)
+#if (CONFIG_ZIRCON_BOOT_IMAGE)
+struct partitions * get_ptbl_from_zircon(void)
+{
+	if (get_partition_from_zircon(zircon_emmc_partition_table,
+		                            ARRAY_SIZE(zircon_emmc_partition_table))) {
+		apt_err("get partition table from zircon faild\n");
+		return NULL;
+	}
+	return get_partitions();
+}
+#endif
+
+struct partitions * get_ptbl_from_dtb(struct mmc *mmc)
 {
 	struct partitions * ptbl = NULL;
 #ifndef DTB_BIND_KERNEL
@@ -458,7 +482,7 @@ static void compose_ept(struct _iptbl *dtb, struct _iptbl *inh,
 }
 
 /* get ptbl from rsv area from emmc */
-static int get_ptbl_rsv(struct mmc *mmc, struct _iptbl *rsv)
+int get_ptbl_rsv(struct mmc *mmc, struct _iptbl *rsv)
 {
 	struct ptbl_rsv * ptbl_rsv = NULL;
 	uchar * buffer = NULL;
@@ -670,7 +694,7 @@ _out:
 	return ret;
 }
 
-static void _free_iptbl(struct _iptbl *iptbl)
+void _free_iptbl(struct _iptbl *iptbl)
 {
 	if (iptbl && iptbl->partitions) {
 		free(iptbl->partitions);
@@ -1223,8 +1247,15 @@ int mmc_device_init (struct mmc *mmc)
 			sizeof(struct partitions)*MAX_PART_COUNT);
 	}
 
-	/* try to get partition table from dtb(ddr or emmc) */
+	/* try to get partition table from either:
+	      -dtb(ddr or emmc)
+	      -zircon parition definitions in zircon_emmc_partition_table
+	*/
+#if (CONFIG_ZIRCON_BOOT_IMAGE)
+	iptbl_dtb.partitions = get_ptbl_from_zircon();
+#else
 	iptbl_dtb.partitions = get_ptbl_from_dtb(mmc);
+#endif
 	/* construct ept by dtb if exist */
 	if (iptbl_dtb.partitions) {
 		iptbl_dtb.count = get_partition_count();
