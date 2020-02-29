@@ -376,19 +376,19 @@ static void add_partition_map(zbi_header_t* zbi) {
         printf("could not find bootloader partition\n");
         return;
     }
-    if (get_partition_info_aml_by_name(dev_desc, "boot", &boot_info)) {
+    if (get_partition_info_aml_by_name(dev_desc, "zircon-a", &boot_info)) {
         printf("could not find boot partition\n");
         return;
     }
-    if (get_partition_info_aml_by_name(dev_desc, "misc", &misc_info)) {
+    if (get_partition_info_aml_by_name(dev_desc, "zircon-b", &misc_info)) {
         printf("could not find misc partition\n");
         return;
     }
-    if (get_partition_info_aml_by_name(dev_desc, "recovery", &recovery_info)) {
+    if (get_partition_info_aml_by_name(dev_desc, "zircon-r", &recovery_info)) {
         printf("could not find recovery partition\n");
         return;
     }
-    if (get_partition_info_aml_by_name(dev_desc, "tee", &tee_info)) {
+    if (get_partition_info_aml_by_name(dev_desc, "sys-config", &tee_info)) {
         printf("could not find tee partition\n");
         return;
     }
@@ -399,7 +399,7 @@ static void add_partition_map(zbi_header_t* zbi) {
     }
     printf("Got crypt\n");
 #endif
-    if (get_partition_info_aml_by_name(dev_desc, "system", &system_info)) {
+    if (get_partition_info_aml_by_name(dev_desc, "fvm", &system_info)) {
         printf("could not find system partition\n");
         return;
     }

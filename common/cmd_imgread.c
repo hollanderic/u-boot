@@ -305,6 +305,10 @@ static int do_image_read_kernel(cmd_tbl_t *cmdtp, int flag, int argc, char * con
     int rc = 0;
     uint64_t flashReadOff = 0;
     unsigned secureKernelImgSz = 0;
+    printf("argc = %d\n", argc);
+    int i=0;
+    for (i = 0; i < argc; i++)
+        printf("[%d]  %s\n",i,argv[i]);
 
     if (1 < argc) {
         partName = argv[1];
@@ -318,6 +322,9 @@ static int do_image_read_kernel(cmd_tbl_t *cmdtp, int flag, int argc, char * con
     else{
         loadaddr = (unsigned char*)simple_strtoul(getenv("loadaddr"), NULL, 16);
     }
+    printf("partName = %s\n", partName);
+    printf("loadaddr = %s\n", loadaddr);
+
 
     ulong nCheckOffset;
     nCheckOffset = aml_sec_boot_check(AML_D_Q_IMG_SIG_HDR_SIZE,GXB_IMG_LOAD_ADDR,GXB_EFUSE_PATTERN_SIZE,GXB_IMG_DEC_ALL);
@@ -329,6 +336,8 @@ static int do_image_read_kernel(cmd_tbl_t *cmdtp, int flag, int argc, char * con
     hdr_addr = (boot_img_hdr*)(loadaddr + nCheckOffset);
 
     if (3 < argc) flashReadOff = simple_strtoull(argv[3], NULL, 0) ;
+
+    printf("flashReadOff =  %llx\n", flashReadOff);
 
     rc = store_read_ops((unsigned char*)partName, loadaddr, flashReadOff, IMG_PRELOAD_SZ);
     if (rc) {

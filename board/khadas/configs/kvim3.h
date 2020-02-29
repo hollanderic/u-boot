@@ -131,7 +131,7 @@
         "osd_reverse=0\0"\
         "video_reverse=0\0"\
         "active_slot=normal\0"\
-        "boot_part=boot\0"\
+        "boot_part=zircon-a\0"\
         "Irq_check_en=0\0"\
         "spi_state=0\0"\
         "fusb302_state=0\0"\
@@ -181,28 +181,9 @@
             "\0" \
         "storeboot="\
             "boot_cooling;"\
-            "get_system_as_root_mode;"\
-            "echo system_mode: ${system_mode};"\
-            "if test ${system_mode} = 1; then "\
-                "setenv bootargs ${bootargs} ro rootwait skip_initramfs;"\
-            "else "\
-                "setenv bootargs ${bootargs} ${fs_type};"\
-            "fi;"\
-            "get_valid_slot;"\
-            "get_avb_mode;"\
-            "echo active_slot: ${active_slot};"\
-            "if test ${active_slot} != normal; then "\
-                    "setenv bootargs ${bootargs} androidboot.slot_suffix=${active_slot};"\
-            "fi;"\
-            "if test ${avb2} = 0; then "\
-                "if test ${active_slot} = _a; then "\
-                    "setenv bootargs ${bootargs} root=/dev/mmcblk0p23;"\
-                "else if test ${active_slot} = _b; then "\
-                    "setenv bootargs ${bootargs} root=/dev/mmcblk0p24;"\
-                "fi;fi;"\
-            "fi;"\
-            "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
-            "run storeargs; run update;"\
+            "echo Loading the kernel image;"\
+            "if imgread kernel zircon-a ${loadaddr}; then bootm ${loadaddr}; fi;"\
+            "run storeargs; fastboot;"\
             "\0"\
         "factory_reset_poweroff_protect="\
             "echo wipe_data=${wipe_data}; echo wipe_cache=${wipe_cache};"\
@@ -345,19 +326,13 @@
 
 
 #define CONFIG_PREBOOT  \
-            "run bcb_cmd; "\
             "run factory_reset_poweroff_protect;"\
-            "run upgrade_check;"\
             "run init_display;"\
             "run wol_init;"\
             "run hwver_check;"\
             "run spi_check;"\
-            "run storeargs;"\
             "run upgrade_key;"\
-            "run port_mode_change;"\
-            "forceupdate;" \
-            "bcb uboot-command;"\
-            "run switch_bootmode;"
+            "run port_mode_change; "
 
 #define CONFIG_BOOTCOMMAND "run storeboot"
 
