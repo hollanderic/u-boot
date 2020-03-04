@@ -1406,6 +1406,8 @@ int find_virtual_partition_by_name (char *name, struct partitions *partition)
 		strcpy(partition->name, name);
 		partition->offset = offset + vpart->offset;
 		partition->size = (vpart->size * DTB_COPIES);
+	} else {
+		return -1;
 	}
 
 	return ret;

@@ -209,15 +209,7 @@
             "fi; \0" \
          "update="\
             /*first usb burning, second sdc_burn, third ext-sd autoscr/recovery, last udisk autoscr/recovery*/\
-            "run usb_burning; "\
-            "run sdc_burning; "\
-            "if mmcinfo; then "\
-                "run recovery_from_sdcard;"\
-            "fi;"\
-            "if usb start 0; then "\
-                "run recovery_from_udisk;"\
-            "fi;"\
-            "run recovery_from_flash;"\
+            "fastboot; "\
             "\0"\
         "recovery_from_sdcard="\
             "if fatload mmc 0 ${loadaddr} aml_autoscript; then autoscr ${loadaddr}; fi;"\
@@ -287,17 +279,6 @@
                 "mmc dev 1;"\
             "fi;"\
             "\0"\
-        "port_mode_change="\
-            "fdt addr ${dtb_mem_addr}; "\
-            "kbi portmode r;"\
-            "if test ${port_mode} = 0; then "\
-                "fdt set /usb3phy@ffe09080 portnum <1>;"\
-                "fdt set /pcieA@fc000000 status disable;"\
-            "else "\
-                "fdt set /usb3phy@ffe09080 portnum <0>;"\
-                "fdt set /pcieA@fc000000 status okay;"\
-            "fi;"\
-            "\0"\
         "cmdline_keys="\
             "kbi usid noprint;"\
             "setenv bootargs ${bootargs} androidboot.serialno=${usid};"\
@@ -305,15 +286,14 @@
             "kbi ethmac noprint;"\
             "setenv bootargs ${bootargs} mac=${eth_mac} androidboot.mac=${eth_mac};"\
             "\0"\
-        "bcb_cmd="\
-            "get_avb_mode;"\
-            "get_valid_slot;"\
-            "\0"\
         "upgrade_key="\
             "if gpio input GPIOAO_7; then "\
                 "echo detect upgrade key; run update;"\
             "fi;"\
             "\0"\
+    "check_boot_part="\
+        "echo checking boot part;"\
+        "echo :::::::::::::::boot_part=${boot_part};\0"\
 	"irremote_update="\
 		"if irkey 2500000 0xe31cfb04 0xb748fb04; then "\
 			"echo read irkey ok!; " \
@@ -326,13 +306,15 @@
 
 
 #define CONFIG_PREBOOT  \
+            "run check_boot_part;"\
             "run factory_reset_poweroff_protect;"\
             "run init_display;"\
             "run wol_init;"\
+            "run check_boot_part;"\
             "run hwver_check;"\
             "run spi_check;"\
-            "run upgrade_key;"\
-            "run port_mode_change; "
+            "run check_boot_part;"\
+            "run upgrade_key; "
 
 #define CONFIG_BOOTCOMMAND "run storeboot"
 

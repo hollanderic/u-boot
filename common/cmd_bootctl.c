@@ -196,7 +196,7 @@ int boot_info_set_active_slot(BrilloBootInfo* info, int slot)
 
 int boot_info_open_partition(char *miscbuf)
 {
-    char *partition = "misc";
+    char *partition = "sys-config";
     //int i;
     printf("Start read %s partition datas!\n", partition);
     if (store_read_ops((unsigned char *)partition,
@@ -219,7 +219,7 @@ bool boot_info_load(BrilloBootInfo *out_info, char *miscbuf)
 
 bool boot_info_save(BrilloBootInfo *info, char *miscbuf)
 {
-    char *partition = "misc";
+    char *partition = "sys-config";
     printf("save boot-info \n");
     memcpy(miscbuf+BOOTINFO_OFFSET, info, SLOTBUF_SIZE);
     dump_boot_info(info);
@@ -243,6 +243,11 @@ static int do_GetValidSlot(
     int argc,
     char * const argv[])
 {
+
+    printf("***********************************************\n\
+            **************do_GetValidSlot   ***************\n\
+            ***********************************************\n");
+
     char miscbuf[4096] = {0};
     BrilloBootInfo info;
     int attemp_times;
@@ -336,6 +341,9 @@ static int do_SetActiveSlot(
     int argc,
     char * const argv[])
 {
+    printf("***********************************************\n\
+            **************do_SetActiveSlot  ***************\n\
+            ***********************************************\n");
     char miscbuf[4096] = {0};
     BrilloBootInfo info;
     int ret = 0;
