@@ -198,7 +198,11 @@ int boot_info_set_active_slot(AvbABData* info, int slot)
 
 int boot_info_open_partition(char *miscbuf)
 {
+#ifdef CONFIG_ZIRCON_BOOT_IMAGE
+    char *partition = "sys-config";
+#else
     char *partition = "misc";
+#endif
     //int i;
     printf("Start read %s partition datas!\n", partition);
     if (store_read_ops((unsigned char *)partition,
@@ -221,7 +225,11 @@ bool boot_info_load(AvbABData *out_info, char *miscbuf)
 
 bool boot_info_save(AvbABData *info, char *miscbuf)
 {
+#ifdef CONFIG_ZIRCON_BOOT_IMAGE
+    char *partition = "sys-config";
+#else
     char *partition = "misc";
+#endif
     printf("save boot-info \n");
     info->crc32 = avb_htobe32(
       avb_crc32((const uint8_t*)info, sizeof(AvbABData) - sizeof(uint32_t)));

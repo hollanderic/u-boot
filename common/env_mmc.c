@@ -327,7 +327,9 @@ void mmc_env_relocate_spec(void)
 void env_relocate_spec(void)
 #endif
 {
-#if !defined(ENV_IS_EMBEDDED)
+#if defined(CONFIG_ZIRCON_BOOT_IMAGE)
+	set_default_env(NULL);
+#elif !defined(ENV_IS_EMBEDDED)
 	ALLOC_CACHE_ALIGN_BUFFER(char, buf, CONFIG_ENV_SIZE);
 	struct mmc *mmc;
 	u32 offset;

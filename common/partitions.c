@@ -71,6 +71,28 @@ void free_partitions(void)
 }
 
 
+int get_partition_from_zircon(struct partitions *parts, uint32_t num_parts) {
+	if (num_parts > 0)
+	{
+		part_table = (struct partitions *)malloc(sizeof(struct partitions)*num_parts);
+		if (!part_table) {
+			printk("%s part_table alloc _err\n",__func__);
+			return -1;
+		}
+		memset(part_table, 0, sizeof(struct partitions)*num_parts);
+		parts_total_num = num_parts;
+		int i;
+		for (i = 0; i < num_parts; i++){
+			memcpy(part_table[i].name, parts[i].name, strlen(parts[i].name));
+			part_table[i].size = parts[i].size;
+			part_table[i].mask_flags = parts[i].mask_flags;
+			printf("%02d:%10s\t%016llx %01x\n", i, part_table[i].name, part_table[i].size, part_table[i].mask_flags);
+		}
+	  return 0;
+	}
+	return -1;
+}
+
 int get_partition_from_dts(unsigned char *buffer)
 {
 	char *dt_addr;

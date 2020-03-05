@@ -81,6 +81,7 @@ extern int has_system_slot;
 #define DISPROTECT_HYNIX		1<<3
 
 extern int get_partition_from_dts(unsigned char * buffer);
+extern int get_partition_from_zircon(struct partitions *parts, uint32_t num_parts);
 
 extern int get_partitions_table(struct partitions **table);
 

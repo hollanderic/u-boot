@@ -131,7 +131,7 @@
         "osd_reverse=0\0"\
         "video_reverse=0\0"\
         "active_slot=normal\0"\
-        "boot_part=boot\0"\
+        "boot_part=zircon-a\0"\
         "Irq_check_en=0\0"\
         "spi_state=0\0"\
         "fusb302_state=0\0"\
@@ -181,28 +181,9 @@
             "\0" \
         "storeboot="\
             "boot_cooling;"\
-            "get_system_as_root_mode;"\
-            "echo system_mode: ${system_mode};"\
-            "if test ${system_mode} = 1; then "\
-                "setenv bootargs ${bootargs} ro rootwait skip_initramfs;"\
-            "else "\
-                "setenv bootargs ${bootargs} ${fs_type};"\
-            "fi;"\
-            "get_valid_slot;"\
-            "get_avb_mode;"\
-            "echo active_slot: ${active_slot};"\
-            "if test ${active_slot} != normal; then "\
-                    "setenv bootargs ${bootargs} androidboot.slot_suffix=${active_slot};"\
-            "fi;"\
-            "if test ${avb2} = 0; then "\
-                "if test ${active_slot} = _a; then "\
-                    "setenv bootargs ${bootargs} root=/dev/mmcblk0p23;"\
-                "else if test ${active_slot} = _b; then "\
-                    "setenv bootargs ${bootargs} root=/dev/mmcblk0p24;"\
-                "fi;fi;"\
-            "fi;"\
+            "echo Loading the kernel image from ${boot_part} @0x${loadaddr};"\
             "if imgread kernel ${boot_part} ${loadaddr}; then bootm ${loadaddr}; fi;"\
-            "run storeargs; run update;"\
+            "run storeargs; fastboot;"\
             "\0"\
         "factory_reset_poweroff_protect="\
             "echo wipe_data=${wipe_data}; echo wipe_cache=${wipe_cache};"\
@@ -227,16 +208,7 @@
                 "run recovery_from_flash;"\
             "fi; \0" \
          "update="\
-            /*first usb burning, second sdc_burn, third ext-sd autoscr/recovery, last udisk autoscr/recovery*/\
-            "run usb_burning; "\
-            "run sdc_burning; "\
-            "if mmcinfo; then "\
-                "run recovery_from_sdcard;"\
-            "fi;"\
-            "if usb start 0; then "\
-                "run recovery_from_udisk;"\
-            "fi;"\
-            "run recovery_from_flash;"\
+            "fastboot; "\
             "\0"\
         "recovery_from_sdcard="\
             "if fatload mmc 0 ${loadaddr} aml_autoscript; then autoscr ${loadaddr}; fi;"\
@@ -293,7 +265,6 @@
             "setenv bootargs ${bootargs} wol_enable=${wol_enable};"\
             "if test ${power_state} = 1; then "\
             "kbi trigger wol w 1;"\
-            "kbi poweroff;"\
             "fi;"\
             "\0"\
         "spi_check="\
@@ -306,27 +277,12 @@
                 "mmc dev 1;"\
             "fi;"\
             "\0"\
-        "port_mode_change="\
-            "fdt addr ${dtb_mem_addr}; "\
-            "kbi portmode r;"\
-            "if test ${port_mode} = 0; then "\
-                "fdt set /usb3phy@ffe09080 portnum <1>;"\
-                "fdt set /pcieA@fc000000 status disable;"\
-            "else "\
-                "fdt set /usb3phy@ffe09080 portnum <0>;"\
-                "fdt set /pcieA@fc000000 status okay;"\
-            "fi;"\
-            "\0"\
         "cmdline_keys="\
             "kbi usid noprint;"\
             "setenv bootargs ${bootargs} androidboot.serialno=${usid};"\
             "setenv serial ${usid};"\
             "kbi ethmac noprint;"\
             "setenv bootargs ${bootargs} mac=${eth_mac} androidboot.mac=${eth_mac};"\
-            "\0"\
-        "bcb_cmd="\
-            "get_avb_mode;"\
-            "get_valid_slot;"\
             "\0"\
         "upgrade_key="\
             "if gpio input GPIOAO_7; then "\
@@ -345,19 +301,12 @@
 
 
 #define CONFIG_PREBOOT  \
-            "run bcb_cmd; "\
             "run factory_reset_poweroff_protect;"\
-            "run upgrade_check;"\
             "run init_display;"\
             "run wol_init;"\
             "run hwver_check;"\
             "run spi_check;"\
-            "run storeargs;"\
-            "run upgrade_key;"\
-            "run port_mode_change;"\
-            "forceupdate;" \
-            "bcb uboot-command;"\
-            "run switch_bootmode;"
+            "run upgrade_key; "
 
 #define CONFIG_BOOTCOMMAND "run storeboot"
 
